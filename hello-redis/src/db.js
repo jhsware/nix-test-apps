@@ -1,5 +1,5 @@
-import { createClient } from 'redis';
-
+const { createClient } = require('redis');
+// https://redis.io/docs/latest/develop/clients/nodejs/
 const IS_PROD = process.env.NODE_ENV === "production";
 const {
   CONNECTION_STRING = "redis://localhost:6380"
@@ -14,11 +14,13 @@ class Database {
   _client = undefined;
 
   async connect() {
-    this._client ??= await createClient({
-      url: CONNECTION_STRING
-    })
-      .on('error', err => console.log('Redis Client Error', err))
-      .connect();
+    if (!this._client) {
+      this._client ??= createClient({
+        url: CONNECTION_STRING
+      });
+      this._client.on('error', err => console.log('Redis Client Error', err))
+      await this._client.connect();
+    }
   }
 
   async close() {

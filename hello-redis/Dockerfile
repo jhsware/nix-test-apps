@@ -1,6 +1,6 @@
 FROM --platform=linux/amd64 node:20-alpine
 
-ENV TZ Europe/Stockholm
+ENV TZ=Europe/Stockholm
 WORKDIR /usr/src/app
 
 COPY ["package.json", "package.json"]

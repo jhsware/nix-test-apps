@@ -1,5 +1,5 @@
 const { Client } = require('@elastic/elasticsearch');
-
+// https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/index.html
 const IS_PROD = process.env.NODE_ENV === "production";
 const {
   CONNECTION_STRING = "http://localhost:9200"

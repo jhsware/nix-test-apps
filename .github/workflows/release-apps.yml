@@ -1,0 +1,38 @@
+# https://github.com/dart-lang/setup-dart
+name: Release apps
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.3.1
+          flavor: release
+          architecture: x64
+
+      - name: Install dependencies
+        run: dart pub get --enforce-lockfile
+
+      # - run: dart format --output=none --set-exit-if-changed .
+      # - run: dart analyze
+      # - name: Run tests
+      #   run: dart test
+
+      - name: Compile executable
+        run: dart compile exe --verbosity error --target-os linux -o bin/nix-infra bin/nix_infra.dart
+      
+      # Export the binary
+      # https://github.com/marketplace/actions/upload-files-to-a-github-release
+      - name: Upload binary to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
+          file: bin/nix-infra
+          asset_name: nix-infra
+          tag: ${{ github.ref }}
+          body: "This is my release text"
