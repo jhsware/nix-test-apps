@@ -23,7 +23,7 @@ api.get(
     try {
       const db = new Database();
       const id = req.params.id;
-      const doc = await db.fetchById(id, "test");
+      const doc = await db.fetchById(id);
       res.send(doc.message);
     } catch (err) {
       next(err);
