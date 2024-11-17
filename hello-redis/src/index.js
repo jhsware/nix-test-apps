@@ -41,7 +41,7 @@ api.get(
       if (!id || !message) {
         throw new Error("Missing id or message");
       }
-      const doc = await db.insert({ id, message }, "test");
+      const doc = await db.insert(id, message);
       res.send(id);
     } catch (err) {
       next(err);

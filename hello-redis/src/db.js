@@ -2,7 +2,7 @@ const { createClient } = require('redis');
 // https://redis.io/docs/latest/develop/clients/nodejs/
 const IS_PROD = process.env.NODE_ENV === "production";
 const {
-  CONNECTION_STRING = "redis://localhost:6380"
+  CONNECTION_STRING = "redis://127.0.0.1:6379"
 } = process.env;
 
 if (IS_PROD && !CONNECTION_STRING)
@@ -29,7 +29,7 @@ class Database {
 
   async fetchById(key) {
     await this.connect();
-    const value = await client.get(key);
+    const value = await this._client.get(key);
     return value;
   }
 
