@@ -1,4 +1,5 @@
-FROM --platform=linux/amd64 node:20-alpine
+ARG PLATFORM=linux/amd64
+FROM --platform=$PLATFORM node:20-alpine
 
 ENV TZ=Europe/Stockholm
 WORKDIR /usr/src/app
