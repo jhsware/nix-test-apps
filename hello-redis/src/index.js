@@ -23,8 +23,10 @@ api.get(
     try {
       const db = new Database();
       const id = req.params.id;
+      console.log(req.params);
       const doc = await db.fetchById(id);
-      res.send(doc.message);
+      console.log(doc);
+      res.send(doc);
     } catch (err) {
       next(err);
     }
@@ -38,6 +40,7 @@ api.get(
       const db = new Database();
       const id = req.query.id;
       const message = req.query.message;
+      console.log(req.query);
       if (!id || !message) {
         throw new Error("Missing id or message");
       }

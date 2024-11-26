@@ -15,9 +15,10 @@ class Database {
 
   async connect() {
     if (this._client) return;
+    const nodes = CONNECTION_STRING.split(',');
     // https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/client-connecting.html
     this._client ??= new Client({
-      node: CONNECTION_STRING,
+      nodes: nodes,
     });
   }
 
