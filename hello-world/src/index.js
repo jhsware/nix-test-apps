@@ -1,6 +1,6 @@
 const express = require('express');
 
-const PORT = 3010;
+const PORT = process.env.EXPOSE ?? 3010;
 
 const app = express();
 const api = express.Router();

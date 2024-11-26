@@ -12,5 +12,5 @@ RUN chown -R node:node /usr/src/app
 USER node
 RUN npm ci --production
 
-EXPOSE 3010
+EXPOSE 3011
 CMD ["npm", "start"]
