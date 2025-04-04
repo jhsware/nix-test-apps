@@ -39,7 +39,7 @@ class Database {
       await this._client.indices.create({ index });
     }
 
-    await this._client.create({ id, index });
+    await this._client.create({ id: doc.id, index, document: doc});
   }
 }
 
