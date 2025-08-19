@@ -18,6 +18,26 @@ api.get(
 );
 
 api.get(
+  '/init',
+  async (req, res, next) => {
+    try {
+      const db = new Database();
+      await db.init(
+        `CREATE TABLE IF NOT EXISTS test (
+          id VARCHAR(255) PRIMARY KEY,
+          message TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`
+      );
+      console.log('init');
+      res.send('init');
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+api.get(
   '/db/:id',
   async (req, res, next) => {
     try {

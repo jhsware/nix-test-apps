@@ -11,18 +11,32 @@ if (IS_PROD && !CONNECTION_STRING)
 const regex = /^(mysql|mariadb):\/\/.*@(.*)\/.*$/;
 const match = CONNECTION_STRING.match(regex);
 const hostParts = match[2].split(',');
-const tmpUri = CONNECTION_STRING.replace(match[2], hostParts[0]);
-const baseUrlParts = new URL(tmpUri);
-
 console.log(`Connecting to ${match[2]}`);
 
 class Database {
   _pool = undefined;
 
   async connect() {
+
+
     if (!this._pool) {
       if (hostParts.length === 1) {
-        this._pool = mysql.createPool(CONNECTION_STRING);
+        const hostPort = hostParts[0];
+        const [host, port] = hostPort.includes(':') 
+            ? hostPort.split(':') 
+            : [hostPort, '3306'];
+        const tmpUri = CONNECTION_STRING.replace(match[2], hostParts[0]);
+        const baseUrlParts = new URL(tmpUri);
+        const database = baseUrlParts.pathname.substring(1);
+        const password = baseUrlParts.password;
+        const user = baseUrlParts.username;
+        return await mysql.createConnection({
+          host,
+          port,
+          user,
+          password,
+          database,
+        });
       } else {
         this._pool = mysql.createPoolCluster();
         const hostNames = ['Primary', 'Secondary_1', 'Secondary_2'];
@@ -30,22 +44,28 @@ class Database {
           const hostName = hostNames[index];
           const hostPort = hostParts[index];
           const [host, port] = hostPort.includes(':') 
-            ? hostPort.split(':') 
-            : [hostPort, '3306'];
-  
+              ? hostPort.split(':') 
+              : [hostPort, '3306'];
+          const tmpUri = CONNECTION_STRING.replace(match[2], hostParts[0]);
+          const baseUrlParts = new URL(tmpUri);
+          const database = baseUrlParts.pathname.substring(1);
+          const password = baseUrlParts.password;
+          const user = baseUrlParts.username;
           this._pool.add(hostName, {
-            host: host,
-            port: port,
-            user: baseUrlParts.username,
-            database: baseUrlParts.pathname.substring(1),
-            password: baseUrlParts.password,
+            host,
+            port,
+            user,
+            database,
+            password,
           });
         }
       }
-      
+      return await this._pool.getConnection();
     }
-    
-    return await this._pool.getConnection();
+  }
+
+  async _release(conn) {
+    await (this._pool ? conn.release() : conn.end());
   }
 
   async close() {
@@ -55,13 +75,19 @@ class Database {
     }
   }
 
+  async init(cmd) {
+    const conn = await this.connect();
+    await conn.execute(cmd);
+    await this._release(conn);
+  }
+
   async fetchById(id, tableName) {
     const conn = await this.connect();
     const [rows] = await conn.execute(
       `SELECT * FROM ${tableName} WHERE id = ?`, 
       [id]
     );
-    conn.release();
+    await this._release(conn);
     return rows.length > 0 ? rows[0] : null;
   }
 
@@ -76,7 +102,7 @@ class Database {
       values
     );
     
-    conn.release();
+    await this._release(conn);
     return {
       insertedId: result.insertId
     };
