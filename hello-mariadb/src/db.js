@@ -21,20 +21,30 @@ class Database {
 
   async connect() {
     if (!this._pool) {
-      this._pool = mysql.createPoolCluster();
-      const hostNames = ['Primary', 'Secondary_1', 'Secondary_2'];
-      for (const index in hostParts) {
-        const hostName = hostNames[index];
-        const host = hostParts[index];
-        this._pool.add(hostName, {
-          host: host,
-          user: baseUrlParts.username,
-          database: baseUrlParts.pathname,
-          password: baseUrlParts.password,
-        });
+      if (hostParts.length === 1) {
+        this._pool = mysql.createPool(CONNECTION_STRING);
+      } else {
+        this._pool = mysql.createPoolCluster();
+        const hostNames = ['Primary', 'Secondary_1', 'Secondary_2'];
+        for (const index in hostParts) {
+          const hostName = hostNames[index];
+          const hostPort = hostParts[index];
+          const [host, port] = hostPort.includes(':') 
+            ? hostPort.split(':') 
+            : [hostPort, '3306'];
+  
+          this._pool.add(hostName, {
+            host: host,
+            port: port,
+            user: baseUrlParts.username,
+            database: baseUrlParts.pathname.substring(1),
+            password: baseUrlParts.password,
+          });
+        }
       }
+      
     }
-
+    
     return await this._pool.getConnection();
   }
 
@@ -51,6 +61,7 @@ class Database {
       `SELECT * FROM ${tableName} WHERE id = ?`, 
       [id]
     );
+    conn.release();
     return rows.length > 0 ? rows[0] : null;
   }
 
@@ -65,6 +76,7 @@ class Database {
       values
     );
     
+    conn.release();
     return {
       insertedId: result.insertId
     };
